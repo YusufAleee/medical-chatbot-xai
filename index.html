@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Medical AI Chatbot</title>
+<style>
+body { font-family: Arial; background: linear-gradient(to right,#4facfe,#00f2fe); }
+#container { width:420px;margin:40px auto;background:white;border-radius:15px;height:600px;display:flex;flex-direction:column; }
+#header { background:#075e54;color:white;padding:15px;text-align:center;font-weight:bold; }
+#messages { flex:1;padding:10px;overflow-y:auto;background:#e5ddd5; }
+.message { padding:10px;margin:5px;border-radius:10px;max-width:80%;white-space:pre-line; }
+.user { background:#dcf8c6;align-self:flex-end; }
+.bot { background:#fff;align-self:flex-start; }
+#inputArea { display:flex;position:relative; }
+input { flex:1;padding:12px;border:none; }
+button { background:#075e54;color:white;border:none;padding:12px; }
+
+#suggestions {
+    position:absolute;
+    bottom:50px;
+    background:white;
+    width:100%;
+    border:1px solid #ccc;
+    max-height:100px;
+    overflow-y:auto;
+}
+
+.suggestion {
+    padding:5px;
+    cursor:pointer;
+}
+
+.suggestion:hover {
+    background:#eee;
+}
+</style>
+</head>
+
+<body>
+<div id="container">
+<div id="header">Medical AI Chatbot</div>
+<div id="messages"></div>
+
+<div id="inputArea">
+<input type="text" id="input" placeholder="Enter symptoms...">
+<button onclick="sendMessage()">Send</button>
+<div id="suggestions"></div>
+</div>
+
+<div style="text-align:center;font-size:12px;padding:5px;">© Yusuf Aliyu</div>
+</div>
+
+<script>
+let input = document.getElementById("input");
+let suggestionsBox = document.getElementById("suggestions");
+let messages = document.getElementById("messages");
+
+// Welcome
+window.onload = () => {
+ addBot("Welcome 👋\nStart typing symptoms and select suggestions.");
+};
+
+// Fetch suggestions
+input.addEventListener("input", () => {
+    let query = input.value;
+
+    if (!query) {
+        suggestionsBox.innerHTML = "";
+        return;
+    }
+
+    fetch(`http://127.0.0.1:5000/symptoms?q=${query}`)
+    .then(res => res.json())
+    .then(data => {
+        suggestionsBox.innerHTML = "";
+        data.forEach(s => {
+            let div = document.createElement("div");
+            div.className = "suggestion";
+            div.innerText = s;
+            div.onclick = () => {
+                input.value = s;
+                suggestionsBox.innerHTML = "";
+            };
+            suggestionsBox.appendChild(div);
+        });
+    });
+});
+
+function addUser(text){
+ let div=document.createElement("div");
+ div.className="message user";
+ div.innerText=text;
+ messages.appendChild(div);
+}
+
+function addBot(text){
+ let div=document.createElement("div");
+ div.className="message bot";
+ div.innerText=text;
+ messages.appendChild(div);
+ messages.scrollTop = messages.scrollHeight;
+}
+
+function sendMessage(){
+ let text=input.value;
+ if(!text) return;
+
+ addUser(text);
+ input.value="";
+ suggestionsBox.innerHTML="";
+
+ let loading = document.createElement("div");
+ loading.className="message bot";
+ loading.innerText="Bot is typing...";
+ messages.appendChild(loading);
+
+ fetch("http://127.0.0.1:5000/predict",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({symptoms:text.split(",")})
+ })
+ .then(res=>res.json())
+ .then(data=>{
+  messages.removeChild(loading);
+
+  if(data.error){
+    addBot(data.error);
+  } else {
+    addBot(`Disease: ${data.prediction}\nConfidence: ${data.confidence}\n${data.explanation}`);
+  }
+ });
+}
+</script>
+</body>
+</html>
