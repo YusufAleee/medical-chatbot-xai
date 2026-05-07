@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 
 # Load dataset
-data = pd.read_csv("../dataset/dataset.csv")
+data = pd.read_csv("dataset/dataset.csv")
 
 # Fill missing values
 data = data.fillna("None")
