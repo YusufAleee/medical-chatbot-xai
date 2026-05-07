@@ -68,7 +68,7 @@ input.addEventListener("input", () => {
         return;
     }
 
-    fetch(`http://127.0.0.1:5000/symptoms?q=${query}`)
+    fetch(`https://medical-chatbot-xai.onrender.com/symptoms?q=${query}`)
     .then(res => res.json())
     .then(data => {
         suggestionsBox.innerHTML = "";
@@ -113,7 +113,7 @@ function sendMessage(){
  loading.innerText="Bot is typing...";
  messages.appendChild(loading);
 
- fetch("http://127.0.0.1:5000/predict",{
+ fetch("https://medical-chatbot-xai.onrender.com/predict",{
   method:"POST",
   headers:{"Content-Type":"application/json"},
   body:JSON.stringify({symptoms:text.split(",")})
